@@ -1,15 +1,14 @@
 <?php
 // require statements, get rid of eventually with autoloading
 
-//model-type class
-require_once __DIR__.'/lib/Ship.php';
-require_once __DIR__.'/lib/BattleResult.php';
-require_once __DIR__.'/lib/Container.php';
+//model-type classes
+require_once __DIR__.'/lib/Model/Ship.php';
+require_once __DIR__.'/lib/Model/BattleResult.php';
 
 //service classes
-require_once __DIR__.'/lib/ShipLoader.php';
-require_once __DIR__.'/lib/BattleManager.php';
-
+require_once __DIR__.'/lib/Service/ShipLoader.php';
+require_once __DIR__.'/lib/Service/BattleManager.php';
+require_once __DIR__.'/lib/Service/Container.php';
 
 $configuration = [
     'db_dsn' => 'mysql:host=127.0.0.1;dbname=oo_battle',
