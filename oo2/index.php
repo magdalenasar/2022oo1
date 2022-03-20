@@ -1,16 +1,8 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 require __DIR__.'/bootstrap.php';
 
-$pdo = new PDO(
-    $configuration['db_dsn'],
-    $configuration['db_user'],
-    $configuration['db_pass']
-);
-$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$container = new Container($configuration);
+$pdo = $container->getPDO();
 
 $shipLoader = new ShipLoader($pdo);
 $ships = $shipLoader->getShips();
