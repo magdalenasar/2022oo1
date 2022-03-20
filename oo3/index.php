@@ -6,6 +6,12 @@ $container = new Container($configuration);
 $shipLoader = $container->getShipLoader();
 $ships = $shipLoader->getShips();
 
+//create a new rebel ship obj
+$rebelShip = new RebelShip("My new rebel ship");
+//var_dump($rebelShip->getFavoriteJedi());die;
+// and add it into the ships array
+$ships[] = $rebelShip;
+
 $errorMessage = '';
 if (isset($_GET['error'])) {
     switch ($_GET['error']) {
