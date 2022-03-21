@@ -6,7 +6,7 @@ require_once "lib/autoload.php";
 
 PrintHead();
 PrintJumbo( $title = "Leuke plekken in Europa" ,
-            $subtitle = "Tips voor citytrips voor vrolijke vakantiegangers!" );
+    $subtitle = "Tips voor citytrips voor vrolijke vakantiegangers!" );
 PrintNavbar();
 //PrintMessages();
 ?>
@@ -15,14 +15,20 @@ PrintNavbar();
     <div class="row">
 
         <?php
+        //    testje foutmelding
+        //    $_SESSION["errors"][] = "Geen fouten!";
+
+        $steven = "Steven";
+        $container->getLogger()->Log("DIT BERICHT KOMT UIT STEDEN.PHP");
+        $container->getLogger()->Log( "De variabele steven: " . var_export($steven, true));
+
+
         //toon messages als er zijn
-        //    foreach ( $msgs as $msg )
-        //    {
-        //        print '<div class="msgs">' . $msg . '</div>';
-        //    }
+        $container->getMessageService()->ShowErrors();
+        $container->getMessageService()->ShowInfos();
 
         //get data
-        $data = GetData( "select * from image" );
+        $data = $container->getDBManager()->GetData( "select * from image" );
 
         //get template
         $template = file_get_contents("templates/column.html");

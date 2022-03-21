@@ -1,12 +1,12 @@
 <?php
 require_once "autoload.php";
 
-function MakeSelect( $fkey, $value, $sql )
+function MakeSelect( $container, $fkey, $value, $sql )
 {
     $select = "<select id=$fkey name=$fkey value=$value>";
     $select .= "<option value='0'></option>";
 
-    $data = GetData($sql);
+    $data = $container->getDBManager()->GetData($sql);
 
     foreach ( $data as $row )
     {
@@ -25,4 +25,3 @@ function MakeCheckbox( )
 {
 
 }
-

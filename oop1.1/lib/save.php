@@ -5,11 +5,16 @@ ini_set( 'display_errors', 1 );
 $public_access = true;
 require_once "autoload.php";
 
-SaveFormData();
+SaveFormData($container, $app_root);
 
-function SaveFormData()
+function SaveFormData(Container $container, $app_root)
 {
-    if ( $_SERVER['REQUEST_METHOD'] == "POST" )
+    if ( $_SERVER['REQUEST_METHOD'] == "POST" AND isset($_POST['btnAnnuleren']) )
+    {
+        header("Location: ../steden.php" );
+    }
+
+    if ( $_SERVER['REQUEST_METHOD'] == "POST" AND isset($_POST['btnOpslaan']) )
     {
         //controle CSRF token
         if ( ! key_exists("csrf", $_POST)) die("Missing CSRF");
@@ -27,30 +32,38 @@ function SaveFormData()
         if ( ! key_exists("table", $_POST)) die("Missing table");
         if ( ! key_exists("pkey", $_POST)) die("Missing pkey");
 
+        $formname = $_POST['formname'];
         $table = $_POST['table'];
         $pkey = $_POST['pkey'];
 
         //validation
         $sending_form_uri = $_SERVER['HTTP_REFERER'];
-        CompareWithDatabase( $table, $pkey );
+        CompareWithDatabase( $container, $table, $pkey );
 
         //Validaties voor het registratieformulier
-        if ( $table == "user" )
+        if ( $formname == "register" )
         {
-            ValidateUsrPassword( $_POST['usr_password'] );
-            ValidateUsrEmail( $_POST['usr_email'] );
-            CheckUniqueUsrEmail( $_POST['usr_email'] );
+            unset($_SESSION['user']);
+            ValidateUsrPassword( $container, $_POST['usr_password'] );
+            CheckUniqueUsrEmail( $container, $_POST['usr_email'] );
+        }
+
+        //Validaties voor het registratieformulier of profielformulier
+        if ( $formname == "profiel" OR $formname == "register" )
+        {
+            ValidateUsrEmail( $container, $_POST['usr_email'] );
         }
 
         //terugkeren naar afzender als er een fout is
-        if ( count($_SESSION['errors']) > 0 )
+        if ( $container->getMessageService()->CountNewErrors() +
+            $container->getMessageService()->CountNewInputErrors() > 0 )
         {
             $_SESSION['OLD_POST'] = $_POST;
             header( "Location: " . $sending_form_uri ); exit();
         }
 
         //insert or update?
-        if ( $_POST["$pkey"] > 0 ) $update = true;
+        if ( key_exists($pkey, $_POST) AND $_POST["$pkey"] > 0 ) $update = true;
         else $insert = true;
 
         if ( $update ) $sql = "UPDATE $table SET ";
@@ -62,7 +75,7 @@ function SaveFormData()
         foreach ( $_POST as $field => $value )
         {
             //skip non-data fields
-            if ( in_array( $field, [ 'table', 'pkey', 'afterinsert', 'afterupdate', 'csrf' ] ) ) continue;
+            if ( in_array( $field, [ 'table', 'pkey', 'afterinsert', 'afterupdate', 'csrf', 'formname',  'btnOpslaan',  'btnAnnuleren' ] ) ) continue;
 
             //handle primary key field
             if ( $field == $pkey )
@@ -76,13 +89,12 @@ function SaveFormData()
                 $value = password_hash( $value, PASSWORD_BCRYPT );
                 $keys_values[] = " $field = '$value' " ;
 
-                $_SESSION['msgs'][] = "Bedankt voor uw registratie";
+                $container->getMessageService()->AddMessage( 'infos', "Bedankt voor uw registratie");
             }
             else //all other data-fields
             {
                 $keys_values[] = " $field = '$value' " ;
             }
-
         }
 
         $str_keys_values = implode(" , ", $keys_values );
@@ -94,12 +106,7 @@ function SaveFormData()
         $sql .= $where;
 
         //run SQL
-        $result = ExecuteSQL( $sql );
-
-        //output if not redirected
-        print $sql ;
-        print "<br>";
-        print $result->rowCount() . " records affected";
+        $result =  $container->getDBManager()->ExecuteSQL( $sql );
 
         //redirect after insert or update
         if ( $insert AND $_POST["afterinsert"] > "" ) header("Location: ../" . $_POST["afterinsert"] );
